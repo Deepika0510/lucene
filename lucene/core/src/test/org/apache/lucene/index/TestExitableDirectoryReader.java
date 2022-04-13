@@ -18,16 +18,17 @@ package org.apache.lucene.index;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.ExitableDirectoryReader.ExitingReaderException;
-import org.apache.lucene.search.DocIdSetIterator;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.PrefixQuery;
-import org.apache.lucene.search.Query;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.tests.analysis.MockAnalyzer;
 import org.apache.lucene.tests.util.LuceneTestCase;
 import org.apache.lucene.util.BytesRef;
+
+import static java.lang.System.nanoTime;
 
 /**
  * Test that uses a default/lucene Implementation of {@link QueryTimeout} to exit out long running
@@ -109,6 +110,26 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     d3.add(newTextField("default", "ones two four", Field.Store.YES));
     writer.addDocument(d3);
 
+    Document d4 = new Document();
+    d4.add(newTextField("default", "ones two five", Field.Store.YES));
+    writer.addDocument(d4);
+
+    Document d5 = new Document();
+    d5.add(newTextField("default", "ones two five", Field.Store.YES));
+    writer.addDocument(d5);
+
+    Document d6 = new Document();
+    d6.add(newTextField("default", "ones two six", Field.Store.YES));
+    writer.addDocument(d6);
+
+    Document d7 = new Document();
+    d7.add(newTextField("default", "ones two seven", Field.Store.YES));
+    writer.addDocument(d7);
+
+    Document d8 = new Document();
+    d8.add(newTextField("default", "ones two eight", Field.Store.YES));
+    writer.addDocument(d8);
+
     writer.forceMerge(1);
     writer.commit();
     writer.close();
@@ -120,17 +141,67 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
 
     Query query = new PrefixQuery(new Term("default", "o"));
 
-    // Set a fairly high timeout value (infinite) and expect the query to complete in that time
-    // frame.
-    // Not checking the validity of the result, all we are bothered about in this test is the timing
-    // out.
+// Set a fairly high timeout value (infinite) and expect the query to complete in that time
+// frame.
+// Not checking the validity of the result, all we are bothered about in this test is the timing
+// out.
+    System.out.println("Test case 1 with timeout value 65");
     directoryReader = DirectoryReader.open(directory);
-    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, infiniteQueryTimeout());
+    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, iQueryTimeout(65));
     reader = new TestReader(getOnlyLeafReader(exitableDirectoryReader));
     searcher = new IndexSearcher(reader);
-    searcher.search(query, 10);
-    reader.close();
 
+
+    ScoreDoc[] hits = null;
+    searcher.setQueryCache(null);
+    hits =  searcher.search(query, 10).scoreDocs;
+
+    System.out.println(hits.length + " total results");
+    for (int i = 0; i < hits.length && i < 10; i++) {
+      Document d = searcher.doc(hits[i].doc);
+      System.out.println(i + " " + hits[i].score + " " + d.get("contents"));
+    }
+    reader.close();
+    System.out.println("Test Case 1 over");
+
+    System.out.println("Test case 2 with timeout value 80");
+    directoryReader = DirectoryReader.open(directory);
+    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, iQueryTimeout(80));
+    reader = new TestReader(getOnlyLeafReader(exitableDirectoryReader));
+    searcher = new IndexSearcher(reader);
+
+
+    hits = null;
+    searcher.setQueryCache(null);
+    hits =  searcher.search(query, 10).scoreDocs;
+
+    System.out.println(hits.length + " total results");
+    for (int i = 0; i < hits.length && i < 10; i++) {
+      Document d = searcher.doc(hits[i].doc);
+      System.out.println(i + " " + hits[i].score + " " + d.get("contents"));
+    }
+    reader.close();
+    System.out.println("Test Case 2 over");
+
+    System.out.println("Test case 3 with timeout value 150");
+    directoryReader = DirectoryReader.open(directory);
+    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, iQueryTimeout(150));
+    reader = new TestReader(getOnlyLeafReader(exitableDirectoryReader));
+    searcher = new IndexSearcher(reader);
+
+
+     hits = null;
+    searcher.setQueryCache(null);
+    hits =  searcher.search(query, 10).scoreDocs;
+
+    System.out.println(hits.length + " total results");
+    for (int i = 0; i < hits.length && i < 10; i++) {
+      Document d = searcher.doc(hits[i].doc);
+      System.out.println(i + " " + hits[i].score + " " + d.get("contents"));
+    }
+    reader.close();
+    System.out.println("Test Case 3 over");
+    /*
     // Set a really low timeout value (immediate) and expect an Exception
     directoryReader = DirectoryReader.open(directory);
     exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, immediateQueryTimeout());
@@ -162,7 +233,7 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     searcher = new IndexSearcher(reader);
     searcher.search(query, 10);
     reader.close();
-
+  */
     directory.close();
   }
 
@@ -220,20 +291,29 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     IndexWriter writer =
         new IndexWriter(directory, newIndexWriterConfig(new MockAnalyzer(random())));
 
-    Document d1 = new Document();
-    d1.add(new IntPoint("default", 10));
-    writer.addDocument(d1);
-
-    Document d2 = new Document();
-    d2.add(new IntPoint("default", 100));
-    writer.addDocument(d2);
-
-    Document d3 = new Document();
-    d3.add(new IntPoint("default", 1000));
-    writer.addDocument(d3);
-
-    writer.forceMerge(1);
+    for (int i = 0; i < 10000; i++) {
+      Document d = new Document();
+      d.add(new IntPoint("default", i+1));
+      writer.addDocument(d);
+    }
+//writer.forceMerge(1);
     writer.commit();
+
+/*for (int i = 100; i < 200; i++) {
+  Document d = new Document();
+  d.add(new IntPoint("default", i+1));
+  writer.addDocument(d);
+}
+//writer.forceMerge(1);
+writer.commit();
+
+for (int i = 200; i < 300; i++) {
+  Document d = new Document();
+  d.add(new IntPoint("default", i+1));
+  writer.addDocument(d);
+}
+//writer.forceMerge(1);
+writer.commit();*/
     writer.close();
 
     DirectoryReader directoryReader;
@@ -241,19 +321,29 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     IndexReader reader;
     IndexSearcher searcher;
 
-    Query query = IntPoint.newRangeQuery("default", 10, 20);
+    Query query = IntPoint.newRangeQuery("default", 50, 250);
 
-    // Set a fairly high timeout value (infinite) and expect the query to complete in that time
-    // frame.
-    // Not checking the validity of the result, all we are bothered about in this test is the timing
-    // out.
+// Set a fairly high timeout value (infinite) and expect the query to complete in that time
+// frame.
+// Not checking the validity of the result, all we are bothered about in this test is the timing
+// out.
     directoryReader = DirectoryReader.open(directory);
-    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, infiniteQueryTimeout());
+    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, iQueryTimeout(65));
     reader = new TestReader(getOnlyLeafReader(exitableDirectoryReader));
     searcher = new IndexSearcher(reader);
-    searcher.search(query, 10);
-    reader.close();
+//searcher.search(query, 10);
+    ScoreDoc[] hits = null;
+    searcher.setQueryCache(null);
+    hits =  searcher.search(query, 200).scoreDocs;
 
+    System.out.println(hits.length + " total results");
+    for (int i = 0; i < hits.length && i < 10; i++) {
+      Document d = searcher.doc(hits[i].doc);
+      System.out.println(i + " " + hits[i].score + " " + d.get("contents"));
+    }
+    reader.close();
+    System.out.println("Test Case 1 Over");
+/*
     // Set a really low timeout value (immediate) and expect an Exception
     directoryReader = DirectoryReader.open(directory);
     exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, immediateQueryTimeout());
@@ -285,7 +375,7 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     searcher = new IndexSearcher(reader);
     searcher.search(query, 10);
     reader.close();
-
+    */
     directory.close();
   }
 
@@ -344,6 +434,27 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
       @Override
       public boolean shouldExit() {
         return true;
+      }
+
+      @Override
+      public boolean isTimeoutEnabled() {
+        return true;
+      }
+    };
+  }
+  // Created queryTimeout for user input.
+  private static QueryTimeout iQueryTimeout(long timeAllowed) {
+    long timeoutAt;
+    final int[] counter = {0};
+    timeoutAt = nanoTime() + TimeUnit.NANOSECONDS.convert(timeAllowed, TimeUnit.MILLISECONDS);
+    return new QueryTimeout() {
+
+      @Override
+      public boolean shouldExit() {
+        counter[0]++;
+        System.out.print(counter[0] + " should exit: " );
+        System.out.println(nanoTime() - timeoutAt > 0);
+        return nanoTime() - timeoutAt > 0;
       }
 
       @Override

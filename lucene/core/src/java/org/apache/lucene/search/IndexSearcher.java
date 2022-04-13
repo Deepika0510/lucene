@@ -32,15 +32,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Supplier;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexReaderContext;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.LeafReaderContext;
-import org.apache.lucene.index.ReaderUtil;
-import org.apache.lucene.index.StoredFieldVisitor;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.*;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.NIOFSDirectory;
@@ -764,13 +756,24 @@ public class IndexSearcher {
         // continue with the following leaf
         continue;
       }
-      BulkScorer scorer = weight.bulkScorer(ctx);
+      System.out.println("Instantiating BulkScorer");
+      BulkScorer scorer = null;
+      try {
+       scorer= weight.bulkScorer(ctx);
+      }
+      catch(ExitableDirectoryReader.ExitingReaderException e) {
+        System.out.println("ExitingReaderException caught after returning from weight.Bulkscorer");
+      }
+        System.out.println("Return from weight.BulkScorer");
+
       if (scorer != null) {
         try {
+          System.out.println("Calling Scorer.score");
           scorer.score(leafCollector, ctx.reader().getLiveDocs());
         } catch (
             @SuppressWarnings("unused")
-            CollectionTerminatedException e) {
+            CollectionTerminatedException | ExitableDirectoryReader.ExitingReaderException e) {
+          System.out.println("Exception caught after calling scoreAll");
           // collection was terminated prematurely
           // continue with the following leaf
         }

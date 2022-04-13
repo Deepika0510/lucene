@@ -244,7 +244,9 @@ public abstract class Weight implements SegmentCacheable {
             ConjunctionUtils.intersectIterators(Arrays.asList(scorerIterator, competitiveIterator));
       }
       if (filteredIterator.docID() == -1 && min == 0 && max == DocIdSetIterator.NO_MORE_DOCS) {
+        System.out.println("Calling scoreAll");
         scoreAll(collector, filteredIterator, twoPhase, acceptDocs);
+        System.out.println("Exiting scoreAll");
         return DocIdSetIterator.NO_MORE_DOCS;
       } else {
         int doc = filteredIterator.docID();
@@ -297,10 +299,12 @@ public abstract class Weight implements SegmentCacheable {
         TwoPhaseIterator twoPhase,
         Bits acceptDocs)
         throws IOException {
+      System.out.println("Iterating with DocIdSetIterator");
       if (twoPhase == null) {
         for (int doc = iterator.nextDoc();
             doc != DocIdSetIterator.NO_MORE_DOCS;
             doc = iterator.nextDoc()) {
+          System.out.println("Doc: "+doc);
           if (acceptDocs == null || acceptDocs.get(doc)) {
             collector.collect(doc);
           }
