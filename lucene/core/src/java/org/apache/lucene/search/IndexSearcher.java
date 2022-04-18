@@ -675,7 +675,14 @@ public class IndexSearcher {
       throws IOException {
     final C firstCollector = collectorManager.newCollector();
     query = rewrite(query, firstCollector.scoreMode().needsScores());
-    final Weight weight = createWeight(query, firstCollector.scoreMode(), 1);
+    final Weight weight;
+    try {
+    weight = createWeight(query, firstCollector.scoreMode(), 1);
+    }
+    catch(ExitableDirectoryReader.ExitingReaderException e){
+      System.out.println("Exception caught");
+      return null;
+    }
     return search(weight, collectorManager, firstCollector);
   }
 
@@ -895,6 +902,7 @@ public class IndexSearcher {
   public Weight createWeight(Query query, ScoreMode scoreMode, float boost) throws IOException {
     final QueryCache queryCache = this.queryCache;
     Weight weight = query.createWeight(this, scoreMode, boost);
+
     if (scoreMode.needsScores() == false && queryCache != null) {
       weight = queryCache.doCache(weight, queryCachingPolicy);
     }
