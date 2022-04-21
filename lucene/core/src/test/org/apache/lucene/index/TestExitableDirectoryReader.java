@@ -197,19 +197,20 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     DirectoryReader exitableDirectoryReader;
     IndexReader reader;
     IndexSearcher searcher;
+    QueryTimeoutImpl obj=new QueryTimeoutImpl(150);
 
     Query query = new TermQuery(new Term("default", "ones"));
 
     System.out.println("Test case 1 with timeout value 10");
     directoryReader = DirectoryReader.open(directory);
-    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, iQueryTimeout(20));
+    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader,obj);
     searcher = new IndexSearcher(exitableDirectoryReader);
-
 
     ScoreDoc[] hits = null;
     TopDocs top = null;
     searcher.setQueryCache(null);
     top =  searcher.search(query, 21);
+
     if(top != null) {
       hits = top.scoreDocs;
       System.out.println(hits.length + " total results");
@@ -221,8 +222,77 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     else{
       System.out.println("No  result");
     }
-
+    System.out.println("Count of shouldExit method call Inside ExitableDirectoryReader "+obj.counter);
     System.out.println("Test Case 1 over");
+    exitableDirectoryReader.close();
+    directory.close();
+  }
+  public void testNumberOfShouldExitCall() throws Exception {
+    Directory directory = newDirectory();
+    IndexWriter writer =
+            new IndexWriter(directory, newIndexWriterConfig(new MockAnalyzer(random())));
+    for(int i = 0; i < 20; i++){
+      Document d = new Document();
+      d.add(newTextField("default", "ones", Field.Store.YES));
+      writer.addDocument(d);
+    }
+    writer.commit();
+    writer.close();
+    Long noCallsShouldExitBeforeScoreAll = 0L;
+    Long noCallsShouldExitAfterScoreAll = 0L;
+    DirectoryReader directoryReader;
+    DirectoryReader exitableDirectoryReader;
+    IndexSearcher searcher;
+    QueryTimeoutImpl queryTimeout = new QueryTimeoutImpl(150);
+
+    Query query = new TermQuery(new Term("default", "ones"));
+
+    System.out.println("Test case 1");
+    directoryReader = DirectoryReader.open(directory);
+    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, queryTimeout);
+    searcher = new IndexSearcher(exitableDirectoryReader);
+
+    ScoreDoc[] hits = null;
+    TopDocs top = null;
+    searcher.setQueryCache(null);
+    //No RuntimeException thrown after Bulkscorer Instantiation in IndexSearcher
+    searcher.flag=false;
+    top =  searcher.search(query, 21);
+
+    if(top != null) {
+      hits = top.scoreDocs;
+      System.out.println(hits.length + " total results");
+    }
+    else{
+      System.out.println("0 result");
+    }
+    noCallsShouldExitBeforeScoreAll = queryTimeout.counter;
+    System.out.println("Test Case 1 over");
+    exitableDirectoryReader.close();
+    System.out.println("Test case 2");
+    queryTimeout.counter = 0L;
+    directoryReader = DirectoryReader.open(directory);
+    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, queryTimeout);
+    searcher = new IndexSearcher(exitableDirectoryReader);
+
+    hits = null;
+    top = null;
+    searcher.setQueryCache(null);
+    try {
+      top = searcher.search(query, 21);
+    }
+    catch (RuntimeException r){
+      noCallsShouldExitAfterScoreAll = queryTimeout.counter;
+    }
+    if(top != null) {
+      hits = top.scoreDocs;
+      System.out.println(hits.length + " total results");
+    }
+    else{
+      System.out.println("No  result");
+    }
+    assertEquals("Number of calls to shouldExit: ", noCallsShouldExitBeforeScoreAll, noCallsShouldExitAfterScoreAll);
+    System.out.println("Test Case 2 over");
     exitableDirectoryReader.close();
     directory.close();
   }

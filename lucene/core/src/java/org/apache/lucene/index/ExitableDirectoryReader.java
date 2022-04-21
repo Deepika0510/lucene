@@ -444,9 +444,9 @@ public class ExitableDirectoryReader extends FilterDirectoryReader {
      * if {@link Thread#interrupted()} returns true.
      */
     private void checkAndThrowWithSampling() {
-      if (calls++ % MAX_CALLS_BEFORE_QUERY_TIMEOUT_CHECK == 0) {
+     // if (calls++ % MAX_CALLS_BEFORE_QUERY_TIMEOUT_CHECK == 0) {
         checkAndThrow();
-      }
+    //  }
     }
 
     private void checkAndThrow() {
@@ -539,9 +539,9 @@ public class ExitableDirectoryReader extends FilterDirectoryReader {
      * if {@link Thread#interrupted()} returns true.
      */
     private void checkAndThrowWithSampling() {
-      if (calls++ % MAX_CALLS_BEFORE_QUERY_TIMEOUT_CHECK == 0) {
+      //if (calls++ % MAX_CALLS_BEFORE_QUERY_TIMEOUT_CHECK == 0) {
         checkAndThrow();
-      }
+     // }
     }
 
     private void checkAndThrow() {
@@ -626,7 +626,7 @@ public class ExitableDirectoryReader extends FilterDirectoryReader {
      * if {@link Thread#interrupted()} returns true.
      */
     private void checkTimeoutWithSampling() {
-      if ((calls++ & NUM_CALLS_PER_TIMEOUT_CHECK) == 0) {
+     // if ((calls++ & NUM_CALLS_PER_TIMEOUT_CHECK) == 0) {
         if (queryTimeout.shouldExit()) {
           throw new ExitingReaderException(
               "The request took too long to iterate over terms. Timeout: "
@@ -638,7 +638,7 @@ public class ExitableDirectoryReader extends FilterDirectoryReader {
               "Interrupted while iterating over terms. TermsEnum=" + in);
         }
       }
-    }
+  //  }
 
     @Override
     public BytesRef next() throws IOException {

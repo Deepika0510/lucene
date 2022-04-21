@@ -74,6 +74,7 @@ public class IndexSearcher {
 
   static int maxClauseCount = 1024;
   private static QueryCache DEFAULT_QUERY_CACHE;
+  public boolean flag=true;
   private static QueryCachingPolicy DEFAULT_CACHING_POLICY = new UsageTrackingQueryCachingPolicy();
 
   static {
@@ -772,7 +773,9 @@ public class IndexSearcher {
         System.out.println("ExitingReaderException caught after returning from weight.Bulkscorer");
       }
         System.out.println("Return from weight.BulkScorer");
-
+        if(flag==true){
+          throw new RuntimeException();
+        }
       if (scorer != null) {
         try {
           System.out.println("Calling Scorer.score");

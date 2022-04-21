@@ -18,6 +18,7 @@ package org.apache.lucene.index;
 
 import static java.lang.System.nanoTime;
 
+import java.security.PublicKey;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -28,7 +29,7 @@ public class QueryTimeoutImpl implements QueryTimeout {
 
   /** The local variable to store the time beyond which, the processing should exit. */
   private Long timeoutAt;
-
+  public  Long counter;
   /**
    * Sets the time at which to time out by adding the given timeAllowed to the current time.
    *
@@ -36,6 +37,7 @@ public class QueryTimeoutImpl implements QueryTimeout {
    *     to effectively never time out.
    */
   public QueryTimeoutImpl(long timeAllowed) {
+    counter=0L;
     if (timeAllowed < 0L) {
       timeAllowed = Long.MAX_VALUE;
     }
@@ -56,6 +58,8 @@ public class QueryTimeoutImpl implements QueryTimeout {
    */
   @Override
   public boolean shouldExit() {
+    counter++;
+    System.out.println(counter);
     return timeoutAt != null && nanoTime() - timeoutAt > 0;
   }
 

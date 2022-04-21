@@ -304,7 +304,7 @@ public abstract class Weight implements SegmentCacheable {
         for (int doc = iterator.nextDoc();
             doc != DocIdSetIterator.NO_MORE_DOCS;
             doc = iterator.nextDoc()) {
-          System.out.println("Doc: "+doc);
+         //˳ System.out.println("Doc: "+doc);
           if (acceptDocs == null || acceptDocs.get(doc)) {
             collector.collect(doc);
           }
