@@ -59,7 +59,7 @@ public class QueryTimeoutImpl implements QueryTimeout {
   @Override
   public boolean shouldExit() {
     counter++;
-    System.out.println(counter);
+    System.out.println("ShouldExit: "+counter);
     return timeoutAt != null && nanoTime() - timeoutAt > 0;
   }
 

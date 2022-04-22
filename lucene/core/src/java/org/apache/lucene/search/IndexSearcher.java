@@ -74,7 +74,7 @@ public class IndexSearcher {
 
   static int maxClauseCount = 1024;
   private static QueryCache DEFAULT_QUERY_CACHE;
-  public boolean flag=true;
+  public boolean flag=false;
   private static QueryCachingPolicy DEFAULT_CACHING_POLICY = new UsageTrackingQueryCachingPolicy();
 
   static {
