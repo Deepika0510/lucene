@@ -256,7 +256,7 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     TopDocs top = null;
     searcher.setQueryCache(null);
     //No RuntimeException thrown after Bulkscorer Instantiation in IndexSearcher
-    searcher.flag=false;
+    //searcher.flag =false;
     top =  searcher.search(query, 21);
 
     if(top != null) {
@@ -269,6 +269,7 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     noCallsShouldExitBeforeScoreAll = queryTimeout.counter;
     System.out.println("Test Case 1 over");
     exitableDirectoryReader.close();
+
     System.out.println("Test case 2");
     queryTimeout.counter = 0L;
     directoryReader = DirectoryReader.open(directory);
@@ -278,6 +279,7 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     hits = null;
     top = null;
     searcher.setQueryCache(null);
+    searcher.flag=true;
     try {
       top = searcher.search(query, 21);
     }
