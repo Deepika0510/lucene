@@ -20,6 +20,7 @@ import java.io.IOException;
 import org.apache.lucene.index.FilterLeafReader.FilterTerms;
 import org.apache.lucene.index.FilterLeafReader.FilterTermsEnum;
 import org.apache.lucene.search.DocIdSetIterator;
+import org.apache.lucene.util.AttributeSource;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.automaton.CompiledAutomaton;
 
@@ -639,13 +640,98 @@ public class ExitableDirectoryReader extends FilterDirectoryReader {
         }
       }
    }
-
-    @Override
+  @Override
     public BytesRef next() throws IOException {
       // Before every iteration, check if the iteration should exit
+      System.out.print("next ");
       checkTimeoutWithSampling();
       return in.next();
     }
+
+    @Override
+    public AttributeSource attributes() {
+      System.out.print("attributes ");
+      checkTimeoutWithSampling();
+      return in.attributes();
+    }
+
+    @Override
+    public SeekStatus seekCeil(BytesRef text) throws IOException {
+      System.out.print("seekCeil ");
+      checkTimeoutWithSampling();
+      return in.seekCeil(text);
+    }
+
+    @Override
+    public boolean seekExact(BytesRef text) throws IOException {
+      System.out.print("seekExact ");
+      checkTimeoutWithSampling();
+      return in.seekExact(text);
+    }
+
+    @Override
+    public void seekExact(long ord) throws IOException {
+      System.out.print("seekExact ");
+      checkTimeoutWithSampling();
+      in.seekExact(ord);
+    }
+
+    @Override
+    public BytesRef term() throws IOException {
+      System.out.print("term ");
+      checkTimeoutWithSampling();
+      return in.term();
+    }
+
+    @Override
+    public long ord() throws IOException {
+      System.out.print("ord ");
+      checkTimeoutWithSampling();
+      return in.ord();
+    }
+
+    @Override
+    public int docFreq() throws IOException {
+      System.out.print("docFreq ");
+      checkTimeoutWithSampling();
+      return in.docFreq();
+    }
+
+    @Override
+    public long totalTermFreq() throws IOException {
+      System.out.print("totalTermFreq ");
+      checkTimeoutWithSampling();
+      return in.totalTermFreq();
+    }
+
+    @Override
+    public PostingsEnum postings(PostingsEnum reuse, int flags) throws IOException {
+      System.out.print("postings ");
+      checkTimeoutWithSampling();
+      return in.postings(reuse, flags);
+    }
+
+    @Override
+    public ImpactsEnum impacts(int flags) throws IOException {
+      System.out.print("impacts ");
+      checkTimeoutWithSampling();
+      return in.impacts(flags);
+    }
+
+    @Override
+    public void seekExact(BytesRef term, TermState state) throws IOException {
+      System.out.print("seekExact ");
+      checkTimeoutWithSampling();
+      in.seekExact(term, state);
+    }
+
+    @Override
+    public TermState termState() throws IOException {
+      System.out.print("termState");
+      checkTimeoutWithSampling();
+      return in.termState();
+    }
+
   }
 
   /**

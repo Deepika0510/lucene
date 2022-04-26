@@ -251,7 +251,7 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     searcher.setQueryCache(null);
     //No RuntimeException thrown after Bulkscorer Instantiation in IndexSearcher
     //searcher.flag =false;
-    top =  searcher.search(query, 21);
+    top =  searcher.search(query, 21,new Sort());
 
     noCallsShouldExitBeforeScoreAll = queryTimeout.counter;
     System.out.println("Test Case 1 over");
