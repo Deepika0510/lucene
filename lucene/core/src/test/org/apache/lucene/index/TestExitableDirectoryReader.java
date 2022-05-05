@@ -225,7 +225,7 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     Directory directory = newDirectory();
     IndexWriter writer =
             new IndexWriter(directory, newIndexWriterConfig(new MockAnalyzer(random())));
-    for(int i = 0; i < 100000; i++){
+    for(int i = 0; i < 10; i++){
       Document d = new Document();
       d.add(newTextField("default", "ones", Field.Store.YES));
       writer.addDocument(d);
