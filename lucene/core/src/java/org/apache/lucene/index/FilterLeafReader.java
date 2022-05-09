@@ -222,7 +222,9 @@ public abstract class FilterLeafReader extends LeafReader {
     }
 
     @Override
-    public PostingsEnum postings(PostingsEnum reuse, int flags) throws IOException {
+    public  PostingsEnum postings(PostingsEnum reuse, int flags) throws IOException
+    {
+      System.out.println("Posting abc");
       return in.postings(reuse, flags);
     }
 

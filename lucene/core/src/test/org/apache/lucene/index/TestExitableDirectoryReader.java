@@ -154,7 +154,7 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
 
     System.out.println("Test case 1 with timeout value 28");
     directoryReader = DirectoryReader.open(directory);
-    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, iQueryTimeout(28));
+    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, iQueryTimeout(1000));
 
     searcher = new IndexSearcher(exitableDirectoryReader);
 
@@ -179,7 +179,7 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     Directory directory = newDirectory();
     IndexWriter writer =
             new IndexWriter(directory, newIndexWriterConfig(new MockAnalyzer(random())));
-    for(int i = 0; i < 1000000; i++){
+    for(int i = 0; i < 10; i++){
       Document d = new Document();
       d.add(newTextField("default", "ones", Field.Store.YES));
       writer.addDocument(d);
@@ -191,13 +191,12 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     DirectoryReader exitableDirectoryReader;
     IndexReader reader;
     IndexSearcher searcher;
-    QueryTimeoutImpl obj=new QueryTimeoutImpl(250);
 
     Query query = new TermQuery(new Term("default", "ones"));
 
     System.out.println("Test case 1 with timeout value 10");
     directoryReader = DirectoryReader.open(directory);
-    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader,obj);
+    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, iQueryTimeout(200));
     searcher = new IndexSearcher(exitableDirectoryReader);
 
     ScoreDoc[] hits = null;
@@ -216,7 +215,7 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     else{
       System.out.println("No  result");
     }
-    System.out.println("Count of shouldExit method call Inside ExitableDirectoryReader "+obj.counter);
+
     System.out.println("Test Case 1 over");
     exitableDirectoryReader.close();
     directory.close();
@@ -225,7 +224,7 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     Directory directory = newDirectory();
     IndexWriter writer =
             new IndexWriter(directory, newIndexWriterConfig(new MockAnalyzer(random())));
-    for(int i = 0; i < 10; i++){
+    for(int i = 0; i <4; i++){
       Document d = new Document();
       d.add(newTextField("default", "ones", Field.Store.YES));
       writer.addDocument(d);
@@ -233,34 +232,33 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     writer.forceMerge(1);
     writer.commit();
     writer.close();
-    Long noCallsShouldExitBeforeScoreAll = 0L;
-    Long noCallsShouldExitAfterScoreAll = 0L;
     DirectoryReader directoryReader;
     DirectoryReader exitableDirectoryReader;
     IndexSearcher searcher;
-    QueryTimeoutImpl queryTimeout = new QueryTimeoutImpl(200);
+
 
     Query query = new TermQuery(new Term("default", "ones"));
 
     System.out.println("Test case 1");
     directoryReader = DirectoryReader.open(directory);
-    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader,queryTimeout);
+    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, iQueryTimeout(200));
     searcher = new IndexSearcher(exitableDirectoryReader);
 
     TopDocs top = null;
     searcher.setQueryCache(null);
+
     //No RuntimeException thrown after Bulkscorer Instantiation in IndexSearcher
     //searcher.flag =false;
-    top =  searcher.search(query, 21,new Sort());
+    top =  searcher.search(query, 21);
 
-    noCallsShouldExitBeforeScoreAll = queryTimeout.counter;
+
     System.out.println("Test Case 1 over");
     exitableDirectoryReader.close();
 
     System.out.println("Test case 2");
-    queryTimeout.counter = 0L;
+
     directoryReader = DirectoryReader.open(directory);
-    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, queryTimeout);
+    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, iQueryTimeout(200));
     searcher = new IndexSearcher(exitableDirectoryReader);
 
     top = null;
@@ -270,10 +268,45 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
       top = searcher.search(query, 21);
     }
     catch (RuntimeException r) {
-      noCallsShouldExitAfterScoreAll = queryTimeout.counter;
+
     }
-    assertNotEquals("Number of calls to shouldExit should not be equal before and after calling scoreAll: ", noCallsShouldExitBeforeScoreAll, noCallsShouldExitAfterScoreAll);
     System.out.println("Test Case 2 over");
+    exitableDirectoryReader.close();
+    directory.close();
+  }
+  //temp
+  public void testExitableImpactsEnum() throws Exception {
+    Directory directory = newDirectory();
+    IndexWriter writer =
+            new IndexWriter(directory, newIndexWriterConfig(new MockAnalyzer(random())));
+    for(int i = 0; i <10; i++){
+      Document d = new Document();
+      d.add(newTextField("default", "ones", Field.Store.YES));
+      writer.addDocument(d);
+    }
+    writer.forceMerge(1);
+    writer.commit();
+    writer.close();
+    DirectoryReader directoryReader;
+    DirectoryReader exitableDirectoryReader;
+    IndexSearcher searcher;
+    Query query = new TermQuery(new Term("default", "ones"));
+
+    System.out.println("Test case 1");
+    directoryReader = DirectoryReader.open(directory);
+    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, iQueryTimeout(200));
+    searcher = new IndexSearcher(exitableDirectoryReader);
+
+    searcher.setQueryCache(null);
+    ScoreDoc[] hits = null;
+    searcher.setQueryCache(null);
+    hits =  searcher.search(query, 10).scoreDocs;
+
+    System.out.println(hits.length + " total results");
+    //No RuntimeException thrown after Bulkscorer Instantiation in IndexSearcher
+    //searcher.flag =false;
+    System.out.println("Test Case 1 over");
+    exitableDirectoryReader.close();
     exitableDirectoryReader.close();
     directory.close();
   }
@@ -319,7 +352,7 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
 
     // Set a really low timeout value (immediate) and expect an Exception
     directoryReader = DirectoryReader.open(directory);
-    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, immediateQueryTimeout());
+    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, infiniteQueryTimeout());
     reader = new TestReader(getOnlyLeafReader(exitableDirectoryReader));
     IndexSearcher slowSearcher = new IndexSearcher(reader);
     expectThrows(
@@ -601,6 +634,9 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
         counter[0]++;
         System.out.print(counter[0] + " should exit: " );
         System.out.println(nanoTime() - timeoutAt > 0);
+        if(counter[0] > 30){
+          return true;
+        }
         return nanoTime() - timeoutAt > 0;
       }
 

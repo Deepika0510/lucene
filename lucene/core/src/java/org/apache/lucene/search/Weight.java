@@ -299,12 +299,12 @@ public abstract class Weight implements SegmentCacheable {
         TwoPhaseIterator twoPhase,
         Bits acceptDocs)
         throws IOException {
-      System.out.println("Iterating with DocIdSetIterator");
+
       if (twoPhase == null) {
         for (int doc = iterator.nextDoc();
             doc != DocIdSetIterator.NO_MORE_DOCS;
             doc = iterator.nextDoc()) {
-         //˳ System.out.println("Doc: "+doc);
+          System.out.println("Iterating with DocIdSetIterator");
           if (acceptDocs == null || acceptDocs.get(doc)) {
             collector.collect(doc);
           }

@@ -781,6 +781,7 @@ public class ExitableDirectoryReader extends FilterDirectoryReader {
     private int calls;
     private QueryTimeout queryTimeout;
 
+
     /** Constructor * */
     public ExitableTermsEnum(TermsEnum termsEnum, QueryTimeout queryTimeout) {
       super(termsEnum);

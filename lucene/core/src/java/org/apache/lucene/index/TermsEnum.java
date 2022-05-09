@@ -133,6 +133,7 @@ public abstract class TermsEnum implements BytesRefIterator {
    * @see #postings(PostingsEnum, int)
    */
   public final PostingsEnum postings(PostingsEnum reuse) throws IOException {
+      System.out.println("Call to Posting");
     return postings(reuse, PostingsEnum.FREQS);
   }
 
