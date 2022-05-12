@@ -609,76 +609,67 @@ public class ExitableDirectoryReader extends FilterDirectoryReader {
 
     @Override
     public void advanceShallow(int target) throws IOException {
-      System.out.print("ImpactsEnum advanceShallow ");
       checkAndThrow();
       in.advanceShallow(target);
     }
 
     @Override
     public Impacts getImpacts() throws IOException {
-      System.out.print("ImpactsEnum getImpacts ");
       checkAndThrow();
       return in.getImpacts();
     }
     @Override
     public int docID() {
-      System.out.print("ImpactsEnum docID ");
       checkAndThrow();
       return in.docID();
     }
 
     @Override
     public int freq() throws IOException {
-      System.out.print("ImpactsEnum freq ");
       checkAndThrow();
       return in.freq();
     }
 
     @Override
     public int nextDoc() throws IOException {
-      System.out.print("ImpactsEnum nextDoc ");
       checkAndThrow();
       return in.nextDoc();
     }
 
     @Override
     public int advance(int target) throws IOException {
-      System.out.print("ImpactsEnum advance ");
       checkAndThrow();
       return in.advance(target);
     }
 
     @Override
     public int nextPosition() throws IOException {
-      System.out.print("ImpactsEnum nextPosition ");
       checkAndThrow();
       return in.nextPosition();
     }
 
     @Override
     public int startOffset() throws IOException {
-      System.out.print("ImpactsEnum startOffset ");
       checkAndThrow();
       return in.startOffset();
     }
 
     @Override
     public int endOffset() throws IOException {
-      System.out.print("ImpactsEnum endOffset ");
       checkAndThrow();
       return in.endOffset();
     }
 
     @Override
     public BytesRef getPayload() throws IOException {
-      System.out.print("ImpactsEnum getPayload ");
+
       checkAndThrow();
       return in.getPayload();
     }
 
     @Override
     public long cost() {
-      System.out.print("ImpactsEnum cost ");
+
       checkAndThrow();
       return in.cost();
     }
@@ -690,7 +681,7 @@ public class ExitableDirectoryReader extends FilterDirectoryReader {
     protected final PostingsEnum in;
 
     private void checkAndThrow() {
-      System.out.print("X ");
+
       if (queryTimeout.shouldExit()) {
         throw new ExitingReaderException(
                 "The request took too long to iterate over terms. Timeout: "
@@ -713,68 +704,71 @@ public class ExitableDirectoryReader extends FilterDirectoryReader {
 
     @Override
     public int docID() {
-      System.out.print("PostingsEnum docID ");
+
       checkAndThrow();
       return in.docID();
     }
 
     @Override
     public int freq() throws IOException {
-      System.out.print("PostingsEnum freq ");
+
       checkAndThrow();
       return in.freq();
     }
 
     @Override
     public int nextDoc() throws IOException {
-      System.out.print("PostingsEnum nextDoc ");
+
       checkAndThrow();
       return in.nextDoc();
     }
 
     @Override
     public int advance(int target) throws IOException {
-      System.out.print("PostingsEnum advance ");
+
       checkAndThrow();
       return in.advance(target);
     }
 
     @Override
     public int nextPosition() throws IOException {
-      System.out.print("PostingsEnum nextPosition ");
+
       checkAndThrow();
       return in.nextPosition();
     }
 
     @Override
     public int startOffset() throws IOException {
-      System.out.print("PostingsEnum startOffset ");
+
       checkAndThrow();
       return in.startOffset();
     }
 
     @Override
     public int endOffset() throws IOException {
-      System.out.print("PostingsEnum endOffset ");
+
       checkAndThrow();
       return in.endOffset();
     }
 
     @Override
     public BytesRef getPayload() throws IOException {
-      System.out.print("PostingsEnum getPayload ");
+
       checkAndThrow();
       return in.getPayload();
     }
 
     @Override
     public long cost() {
-      System.out.print("PostingsEnum cost ");
+
       checkAndThrow();
       return in.cost();
     }
   }
-
+  /**
+   * Wrapper class for TermsEnum that is used by ExitableTerms for implementing an exitable
+   * enumeration of terms.
+   */
   public static class ExitableTermsEnum extends FilterTermsEnum {
     // Create bit mask in the form of 0000 1111 for efficient checking
     private static final int NUM_CALLS_PER_TIMEOUT_CHECK = (1 << 4) - 1; // 15
@@ -811,70 +805,60 @@ public class ExitableDirectoryReader extends FilterDirectoryReader {
     @Override
     public BytesRef next() throws IOException {
       // Before every iteration, check if the iteration should exit
-      System.out.print("ExitableTermsEnum next ");
       checkTimeoutWithSampling();
       return in.next();
     }
 
     @Override
     public AttributeSource attributes() {
-      System.out.print("ExitableTermsEnum AttributeSource ");
       checkTimeoutWithSampling();
       return in.attributes();
     }
 
     @Override
     public SeekStatus seekCeil(BytesRef text) throws IOException {
-      System.out.print("ExitableTermsEnum seekCeil ");
       checkTimeoutWithSampling();
       return in.seekCeil(text);
     }
 
     @Override
     public boolean seekExact(BytesRef text) throws IOException {
-      System.out.print("ExitableTermsEnum seekExact ");
       checkTimeoutWithSampling();
       return in.seekExact(text);
     }
 
     @Override
     public void seekExact(long ord) throws IOException {
-      System.out.print("ExitableTermsEnum seekExact ");
       checkTimeoutWithSampling();
       in.seekExact(ord);
     }
 
     @Override
     public BytesRef term() throws IOException {
-      System.out.print("ExitableTermsEnum term ");
       checkTimeoutWithSampling();
       return in.term();
     }
 
     @Override
     public long ord() throws IOException {
-      System.out.print("ExitableTermsEnum ord ");
       checkTimeoutWithSampling();
       return in.ord();
     }
 
     @Override
     public int docFreq() throws IOException {
-      System.out.print("ExitableTermsEnum docFreq ");
       checkTimeoutWithSampling();
       return in.docFreq();
     }
 
     @Override
     public long totalTermFreq() throws IOException {
-      System.out.print("ExitableTermsEnum totalTermFreq ");
       checkTimeoutWithSampling();
       return in.totalTermFreq();
     }
 
     @Override
     public PostingsEnum postings(PostingsEnum reuse, int flags) throws IOException {
-      System.out.print("ExitableTermsEnum postings ");
       checkTimeoutWithSampling();
       ExitablePostingsEnum obj = new ExitablePostingsEnum(in.postings(reuse, flags), queryTimeout);
       return obj;
@@ -882,7 +866,6 @@ public class ExitableDirectoryReader extends FilterDirectoryReader {
 
     @Override
     public ImpactsEnum impacts(int flags) throws IOException {
-      System.out.print("ExitableTermsEnum impacts ");
       checkTimeoutWithSampling();
       ExitableImpactsEnum obj = new ExitableImpactsEnum(in.impacts(flags), queryTimeout);
       return obj;
@@ -890,14 +873,12 @@ public class ExitableDirectoryReader extends FilterDirectoryReader {
 
     @Override
     public void seekExact(BytesRef term, TermState state) throws IOException {
-      System.out.print("ExitableTermsEnum seekExact ");
       checkTimeoutWithSampling();
       in.seekExact(term, state);
     }
 
     @Override
     public TermState termState() throws IOException {
-      System.out.print("ExitableTermsEnum termState ");
       checkTimeoutWithSampling();
       return in.termState();
     }

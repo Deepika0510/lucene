@@ -678,10 +678,9 @@ public class IndexSearcher {
     query = rewrite(query, firstCollector.scoreMode().needsScores());
     final Weight weight;
     try {
-    weight = createWeight(query, firstCollector.scoreMode(), 1);
+       weight = createWeight(query, firstCollector.scoreMode(), 1);
     }
     catch(ExitableDirectoryReader.ExitingReaderException e){
-      System.out.println("Exception caught");
       return null;
     }
     return search(weight, collectorManager, firstCollector);
@@ -764,26 +763,18 @@ public class IndexSearcher {
         // continue with the following leaf
         continue;
       }
-      System.out.println("Instantiating BulkScorer");
       BulkScorer scorer = null;
       try {
        scorer= weight.bulkScorer(ctx);
       }
       catch(ExitableDirectoryReader.ExitingReaderException e) {
-        System.out.println("ExitingReaderException caught after returning from weight.Bulkscorer");
       }
-        System.out.println("Return from weight.BulkScorer");
-        if(flag==true){
-          throw new RuntimeException();
-        }
       if (scorer != null) {
         try {
-          System.out.println("Calling Scorer.score");
           scorer.score(leafCollector, ctx.reader().getLiveDocs());
         } catch (
             @SuppressWarnings("unused")
             CollectionTerminatedException | ExitableDirectoryReader.ExitingReaderException e) {
-          System.out.println("Exception caught after calling scoreAll");
           // collection was terminated prematurely
           // continue with the following leaf
         }

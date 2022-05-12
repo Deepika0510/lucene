@@ -94,192 +94,12 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
    * @throws Exception on error
    */
 
-  public void testModifiedExitableFilterTermsIndexReader() throws Exception {
-    Directory directory = newDirectory();
-    IndexWriter writer =
-        new IndexWriter(directory, newIndexWriterConfig(new MockAnalyzer(random())));
-
-    Document d1 = new Document();
-    d1.add(newTextField("default", "one two", Field.Store.YES));
-    writer.addDocument(d1);
-
-    Document d2 = new Document();
-    d2.add(newTextField("default", "one three", Field.Store.YES));
-    writer.addDocument(d2);
-
-    Document d3 = new Document();
-    d3.add(newTextField("default", "ones two four", Field.Store.YES));
-    writer.addDocument(d3);
-
-    Document d4 = new Document();
-    d4.add(newTextField("default", "ones two five", Field.Store.YES));
-    writer.addDocument(d4);
-
-    Document d5 = new Document();
-    d5.add(newTextField("default", "ones two five", Field.Store.YES));
-    writer.addDocument(d5);
-
-    Document d6 = new Document();
-    d6.add(newTextField("default", "ones two six", Field.Store.YES));
-    writer.addDocument(d6);
-
-    Document d7 = new Document();
-    d7.add(newTextField("default", "ones two seven", Field.Store.YES));
-    writer.addDocument(d7);
-
-    Document d8 = new Document();
-    d8.add(newTextField("default", "ones two eight", Field.Store.YES));
-    writer.addDocument(d8);
-
-    for (int i = 0; i < 10; i++) {
-      Document d = new Document();
-      d.add(newTextField("default", "ones", Field.Store.YES));
-      writer.addDocument(d);
-    }
-
-    writer.commit();
-    for (int i = 0; i < 10; i++) {
-      Document d = new Document();
-      d.add(newTextField("default", "ones", Field.Store.YES));
-      writer.addDocument(d);
-    }
-    writer.commit();
-    writer.close();
-
-    DirectoryReader directoryReader;
-    DirectoryReader exitableDirectoryReader;
-    IndexSearcher searcher;
-
-    Query query = new PrefixQuery(new Term("default", "o"));
-
-    System.out.println("Test case 1 with timeout value 28");
-    directoryReader = DirectoryReader.open(directory);
-    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, iQueryTimeout(1000));
-
-    searcher = new IndexSearcher(exitableDirectoryReader);
-
-
-    ScoreDoc[] hits = null;
-    searcher.setQueryCache(null);
-    hits =  searcher.search(query, 20).scoreDocs;
-
-    System.out.println(hits.length + " total results");
-    for (int i = 0; i < hits.length && i < 10; i++) {
-      Document d = searcher.doc(hits[i].doc);
-      System.out.println(i + " " + hits[i].score + " " + d.get("contents"));
-    }
-
-    System.out.println("Test Case 1 over");
-    exitableDirectoryReader.close();
-
-    directory.close();
-  }
-
-  public void testModifiedExitableTermsIndexReader() throws Exception {
-    Directory directory = newDirectory();
-    IndexWriter writer =
-            new IndexWriter(directory, newIndexWriterConfig(new MockAnalyzer(random())));
-    for(int i = 0; i < 10; i++){
-      Document d = new Document();
-      d.add(newTextField("default", "ones", Field.Store.YES));
-      writer.addDocument(d);
-    }
-    writer.commit();
-    writer.close();
-
-    DirectoryReader directoryReader;
-    DirectoryReader exitableDirectoryReader;
-    IndexReader reader;
-    IndexSearcher searcher;
-
-    Query query = new TermQuery(new Term("default", "ones"));
-
-    System.out.println("Test case 1 with timeout value 10");
-    directoryReader = DirectoryReader.open(directory);
-    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, iQueryTimeout(200));
-    searcher = new IndexSearcher(exitableDirectoryReader);
-
-    ScoreDoc[] hits = null;
-    TopDocs top = null;
-    searcher.setQueryCache(null);
-    top =  searcher.search(query, 21);
-
-    if(top != null) {
-      hits = top.scoreDocs;
-      System.out.println(hits.length + " total results");
-      for (int i = 0; i < hits.length && i < 10; i++) {
-        Document d = searcher.doc(hits[i].doc);
-        System.out.println(i + " " + hits[i].score + " " + d.get("contents"));
-      }
-    }
-    else{
-      System.out.println("No  result");
-    }
-
-    System.out.println("Test Case 1 over");
-    exitableDirectoryReader.close();
-    directory.close();
-  }
-  public void testNumberOfShouldExitCall() throws Exception {
-    Directory directory = newDirectory();
-    IndexWriter writer =
-            new IndexWriter(directory, newIndexWriterConfig(new MockAnalyzer(random())));
-    for(int i = 0; i <4; i++){
-      Document d = new Document();
-      d.add(newTextField("default", "ones", Field.Store.YES));
-      writer.addDocument(d);
-    }
-    writer.forceMerge(1);
-    writer.commit();
-    writer.close();
-    DirectoryReader directoryReader;
-    DirectoryReader exitableDirectoryReader;
-    IndexSearcher searcher;
-
-
-    Query query = new TermQuery(new Term("default", "ones"));
-
-    System.out.println("Test case 1");
-    directoryReader = DirectoryReader.open(directory);
-    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, iQueryTimeout(200));
-    searcher = new IndexSearcher(exitableDirectoryReader);
-
-    TopDocs top = null;
-    searcher.setQueryCache(null);
-
-    //No RuntimeException thrown after Bulkscorer Instantiation in IndexSearcher
-    //searcher.flag =false;
-    top =  searcher.search(query, 21);
-
-
-    System.out.println("Test Case 1 over");
-    exitableDirectoryReader.close();
-
-    System.out.println("Test case 2");
-
-    directoryReader = DirectoryReader.open(directory);
-    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, iQueryTimeout(200));
-    searcher = new IndexSearcher(exitableDirectoryReader);
-
-    top = null;
-    searcher.setQueryCache(null);
-    searcher.flag=true;
-    try {
-      top = searcher.search(query, 21);
-    }
-    catch (RuntimeException r) {
-
-    }
-    System.out.println("Test Case 2 over");
-    exitableDirectoryReader.close();
-    directory.close();
-  }
-  //temp
   public void testExitableImpactsEnum() throws Exception {
     Directory directory = newDirectory();
     IndexWriter writer =
             new IndexWriter(directory, newIndexWriterConfig(new MockAnalyzer(random())));
-    for(int i = 0; i <10; i++){
+    int n = 1000;
+    for (int i = 0; i < n; i++) {
       Document d = new Document();
       d.add(newTextField("default", "ones", Field.Store.YES));
       writer.addDocument(d);
@@ -289,25 +109,71 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
     writer.close();
     DirectoryReader directoryReader;
     DirectoryReader exitableDirectoryReader;
+    IndexReader reader;
     IndexSearcher searcher;
     Query query = new TermQuery(new Term("default", "ones"));
 
-    System.out.println("Test case 1");
     directoryReader = DirectoryReader.open(directory);
-    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, iQueryTimeout(200));
-    searcher = new IndexSearcher(exitableDirectoryReader);
+    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, timeoutCheck(250));
+    reader = new TestReader(getOnlyLeafReader(exitableDirectoryReader));
+    searcher = new IndexSearcher(reader);
 
     searcher.setQueryCache(null);
     ScoreDoc[] hits = null;
     searcher.setQueryCache(null);
-    hits =  searcher.search(query, 10).scoreDocs;
+    TopDocs top;
+    top = searcher.search(query, n);
+    if (top != null) {
+      hits = top.scoreDocs;
+      System.out.println(hits.length + " total results");
+      assertTrue("Partial result", hits.length > 0 && hits.length < n);
+    }
+    else{
+      System.out.println("No results found");
+    }
+    exitableDirectoryReader.close();
+    reader.close();
+    directory.close();
+  }
 
-    System.out.println(hits.length + " total results");
-    //No RuntimeException thrown after Bulkscorer Instantiation in IndexSearcher
-    //searcher.flag =false;
-    System.out.println("Test Case 1 over");
+  public void testExitablePostingsEnum() throws Exception {
+    Directory directory = newDirectory();
+    IndexWriter writer =
+            new IndexWriter(directory, newIndexWriterConfig(new MockAnalyzer(random())));
+    int n = 1000;
+    for (int i = 0; i < n; i++) {
+      Document d = new Document();
+      d.add(newTextField("default", "ones", Field.Store.YES));
+      writer.addDocument(d);
+    }
+    writer.forceMerge(1);
+    writer.commit();
+    writer.close();
+    DirectoryReader directoryReader;
+    DirectoryReader exitableDirectoryReader;
+    IndexReader reader;
+    IndexSearcher searcher;
+    Query query = new PrefixQuery(new Term("default", "ones"));
+
+    directoryReader = DirectoryReader.open(directory);
+    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, timeoutCheck(200));
+    reader = new TestReader(getOnlyLeafReader(exitableDirectoryReader));
+    searcher = new IndexSearcher(reader);
+
+    searcher.setQueryCache(null);
+    ScoreDoc[] hits = null;
+    searcher.setQueryCache(null);
+    TopDocs top;
+    top = searcher.search(query, n);
+    if (top != null) {
+      hits = top.scoreDocs;
+      System.out.println(hits.length + " total results");
+      assertTrue("Partial result", hits.length > 0 && hits.length < n);
+    } else {
+      System.out.println("No results found");
+    }
     exitableDirectoryReader.close();
-    exitableDirectoryReader.close();
+    reader.close();
     directory.close();
   }
 
@@ -434,57 +300,6 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
    *
    * @throws Exception on error
    */
-  public void testModifiedExitablePointValuesIndexReader() throws Exception {
-    Directory directory = newDirectory();
-    IndexWriter writer =
-        new IndexWriter(directory, newIndexWriterConfig(new MockAnalyzer(random())));
-
-    for (int i = 0; i < 10; i++) {
-      Document d = new Document();
-      d.add(new IntPoint("default", i+1));
-      writer.addDocument(d);
-    }
-    writer.commit();
-    for (int i = 10; i < 20; i++) {
-      Document d = new Document();
-      d.add(new IntPoint("default", i+1));
-      writer.addDocument(d);
-    }
-    writer.commit();
-    for (int i = 20; i < 30; i++) {
-      Document d = new Document();
-      d.add(new IntPoint("default", i+1));
-      writer.addDocument(d);
-    }
-    writer.commit();
-    writer.close();
-
-    DirectoryReader directoryReader;
-    DirectoryReader exitableDirectoryReader;
-    IndexReader reader;
-    IndexSearcher searcher;
-
-    Query query = IntPoint.newRangeQuery("default", 5, 25);
-
-    System.out.println("Test case 1 with timeout value 15");
-    directoryReader = DirectoryReader.open(directory);
-    exitableDirectoryReader = new ExitableDirectoryReader(directoryReader, iQueryTimeout(25));
-    searcher = new IndexSearcher(exitableDirectoryReader);
-
-    ScoreDoc[] hits = null;
-    searcher.setQueryCache(null);
-    hits =  searcher.search(query, 20).scoreDocs;
-
-    System.out.println(hits.length + " total results");
-    for (int i = 0; i < hits.length && i < 10; i++) {
-      Document d = searcher.doc(hits[i].doc);
-      System.out.println(i + " " + hits[i].score + " " + d.get("contents"));
-    }
-    System.out.println("Test Case 1 Over");
-    exitableDirectoryReader.close();
-    directory.close();
-  }
-
   public void testExitablePointValuesIndexReader() throws Exception {
     Directory directory = newDirectory();
     IndexWriter writer =
@@ -622,19 +437,16 @@ public class TestExitableDirectoryReader extends LuceneTestCase {
       }
     };
   }
-  // Created queryTimeout for user input.
-  private static QueryTimeout iQueryTimeout(long timeAllowed) {
+
+  private static QueryTimeout timeoutCheck(long timeAllowed) {
     long timeoutAt;
     final int[] counter = {0};
     timeoutAt = nanoTime() + TimeUnit.NANOSECONDS.convert(timeAllowed, TimeUnit.MILLISECONDS);
     return new QueryTimeout() {
-
       @Override
       public boolean shouldExit() {
         counter[0]++;
-        System.out.print(counter[0] + " should exit: " );
-        System.out.println(nanoTime() - timeoutAt > 0);
-        if(counter[0] > 30){
+        if (counter[0] > 50){
           return true;
         }
         return nanoTime() - timeoutAt > 0;
